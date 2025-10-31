@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hangman Game</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #f8f9fa;
+    margin-top: 40px;
+  }
+  h1 {
+    color: #333;
+  }
+  #word {
+    letter-spacing: 8px;
+    font-size: 2em;
+    margin: 20px;
+    white-space: pre-wrap;
+  }
+  #message {
+    font-size: 1.2em;
+    color: #555;
+  }
+  #hangman {
+    margin: 20px auto;
+    width: 200px;
+    height: 250px;
+    border-left: 4px solid #333;
+    border-top: 4px solid #333;
+    position: relative;
+  }
+  .part {
+    display: none;
+    position: absolute;
+  }
+  #head {
+    top: 40px; left: 150px;
+    width: 40px; height: 40px;
+    border: 3px solid #333; border-radius: 50%;
+  }
+  #body {
+    top: 80px; left: 170px;
+    width: 0; height: 70px;
+    border-left: 3px solid #333;
+  }
+  #leftArm {
+    top: 100px; left: 170px;
+    width: 40px; height: 0;
+    border-top: 3px solid #333;
+    transform: rotate(-30deg);
+    transform-origin: left;
+  }
+  #rightArm {
+    top: 100px; left: 170px;
+    width: 40px; height: 0;
+    border-top: 3px solid #333;
+    transform: rotate(30deg);
+    transform-origin: right;
+  }
+  #leftLeg {
+    top: 150px; left: 170px;
+    width: 40px; height: 0;
+    border-top: 3px solid #333;
+    transform: rotate(30deg);
+    transform-origin: left;
+  }
+  #rightLeg {
+    top: 150px; left: 170px;
+    width: 40px; height: 0;
+    border-top: 3px solid #333;
+    transform: rotate(-30deg);
+    transform-origin: right;
+  }
+  input {
+    font-size: 1em;
+    padding: 8px;
+  }
+  button {
+    padding: 8px 12px;
+    font-size: 1em;
+    margin-left: 5px;
+  }
+
+  /* 🎨 Center the reward image */
+  #reward-image {
+    display: none;
+    margin: 30px auto 0 auto;
+    max-width: 80%;
+    border-radius: 10px;
+    display: block;
+  }
+</style>
+</head>
+<body>
+<h1>Hangman Game</h1>
+
+<div id="hangman">
+  <div id="head" class="part"></div>
+  <div id="body" class="part"></div>
+  <div id="leftArm" class="part"></div>
+  <div id="rightArm" class="part"></div>
+  <div id="leftLeg" class="part"></div>
+  <div id="rightLeg" class="part"></div>
+</div>
+
+<div id="word"></div>
+<div id="message"></div>
+
+<input type="text" id="guess" maxlength="1" placeholder="Enter a letter" />
+<button onclick="makeGuess()">Guess</button>
+
+<p>Wrong guesses: <span id="wrong"></span></p>
+
+<img id="reward-image" src="" alt="Reward Image">
+
+<script>
+const secretWord = "Tu vas etre tonton"; // <--- change this to your chosen word
+const rewardUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1"; // <--- link to show after winning
+const rewardImageUrl = "https://github.com/AdrBinet/hangman/blob/main/image.jpg"; // <--- reward image or GIF
+
+const secretWordLower = secretWord.toLowerCase();
+let guessedLetters = [];
+let wrongGuesses = [];
+
+const hangmanParts = [
+  "head",
+  "body",
+  "leftArm",
+  "rightArm",
+  "leftLeg",
+  "rightLeg"
+];
+
+function displayWord() {
+  const display = secretWord
+    .split("")
+    .map(char => {
+      if (char === " ") return " ";
+      return guessedLetters.includes(char.toLowerCase()) ? char : "_";
+    })
+    .join(" ");
+  document.getElementById("word").textContent = display;
+}
+
+function updateHangman() {
+  hangmanParts.forEach((id, index) => {
+    document.getElementById(id).style.display =
+      index < wrongGuesses.length ? "block" : "none";
+  });
+}
+
+function makeGuess() {
+  const input = document.getElementById("guess");
+  const letter = input.value.toLowerCase();
+  input.value = "";
+  
+  if (!letter.match(/[a-z]/) || letter.length !== 1) return;
+
+  if (secretWordLower.includes(letter)) {
+    if (!guessedLetters.includes(letter)) guessedLetters.push(letter);
+  } else {
+    if (!wrongGuesses.includes(letter)) wrongGuesses.push(letter);
+  }
+
+  displayWord();
+  updateHangman();
+  document.getElementById("wrong").textContent = wrongGuesses.join(", ");
+
+  const cleanedWord = secretWordLower.replace(/ /g, "");
+  const allGuessed = cleanedWord.split("").every(l => guessedLetters.includes(l));
+
+  if (allGuessed) {
+    document.getElementById("message").textContent = "🎉 You found the word!";
+    const rewardImg = document.getElementById("reward-image");
+    rewardImg.src = rewardImageUrl;
+    rewardImg.style.display = "block";
+
+    // Automatically open reward link in a new tab
+    window.open(rewardUrl, "_blank");
+  }
+
+  if (wrongGuesses.length >= hangmanParts.length && !allGuessed) {
+    document.getElementById("message").textContent = "💀 Game Over! The word was: " + secretWord;
+  }
+}
+
+// Press Enter = guess
+document.getElementById("guess").addEventListener("keypress", function(event) {
+  if (event.key === "Enter") {
+    makeGuess();
+  }
+});
+
+displayWord();
+</script>
+</body>
+</html>
